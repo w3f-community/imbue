@@ -14,7 +14,12 @@
 // limitations under the License.
 
 //! A list of the different weight modules for our runtime.
-
+pub mod pallet_bounties;
 pub mod pallet_collective_council;
+pub mod pallet_election_provider_multi_phase;
+pub mod pallet_gilt;
+pub mod pallet_identity;
+pub mod pallet_membership;
 pub mod pallet_scheduler;
+pub mod pallet_staking;
 

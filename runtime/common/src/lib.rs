@@ -19,6 +19,11 @@
 
 pub use constants::*;
 pub use types::*;
+pub mod elections;
+
+pub use frame_support::weights::constants::{
+	BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight,
+};
 
 
 /// Common types for all runtimes
@@ -98,6 +103,9 @@ pub mod constants {
 	pub const HOURS: BlockNumber = MINUTES * 60;
 	pub const DAYS: BlockNumber = HOURS * 24;
 
+	pub const EPOCH_DURATION_IN_SLOTS: BlockNumber = 4 * HOURS;
+	pub const EPOCH_DURATION_IN_BLOCKS: u32 = 10 * MINUTES;
+
 	/// Milliseconds per day
 	pub const MILLISECS_PER_DAY: u64 = 86400000;
 
@@ -122,4 +130,11 @@ pub mod constants {
 	/// Additional fee charged when moving native tokens to target chains (in IMBUs).
 	pub const NATIVE_TOKEN_TRANSFER_FEE: Balance = 2000 * IMBU;
 
+
+	pub const fn deposit(items: u32, bytes: u32) -> Balance {
+		items as Balance * 2_000 * CENTI_IMBU + (bytes as Balance) * 100 * MILLI_IMBU
+	}
+
 }
+
+
