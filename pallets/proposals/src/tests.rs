@@ -20,7 +20,7 @@ use crate::*;
 use codec::Decode;
 use frame_support::{
     parameter_types, ord_parameter_types, PalletId,
-    traits::{Everything,ConstU32,EnsureInherentsAreFirst},
+    traits::{EnsureOrigin,Everything,ConstU32,EnsureInherentsAreFirst},
     weights::{IdentityFee, Weight},
 };
 
@@ -58,6 +58,7 @@ frame_support::construct_runtime!(
         Proposals: proposals::{Pallet, Call, Storage, Event<T>},
         Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
         TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
+        Identity: pallet_identity::{Pallet, Call, Storage, Event<T>},
        // XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin} = 51,
         //CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Event<T>, Origin} = 52,
 
@@ -206,8 +207,8 @@ impl pallet_identity::Config for Test {
 	type MaxSubAccounts = MaxSubAccounts;
 	type MaxAdditionalFields = MaxAdditionalFields;
 	type MaxRegistrars = MaxRegistrars;
-	type RegistrarOrigin = EnsureOneOrRoot;
-	type ForceOrigin = EnsureTwoOrRoot;
+	type RegistrarOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = EnsureRoot<AccountId>;
 	type WeightInfo = ();
 }
 
@@ -301,7 +302,9 @@ fn create_a_test_project() {
             //website
             str::from_utf8(b"1. MVP, 2. Community Tested, 3. Prod Rollout").unwrap().as_bytes().to_vec(),
             //milestone
-            4,
+            vec![ProposedMilestone { 
+                name: Vec::new(), percentage_to_unlock: 20
+            }],
             //funds required
             1000000u64
         ).unwrap();
