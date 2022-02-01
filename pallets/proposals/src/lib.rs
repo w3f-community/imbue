@@ -14,6 +14,8 @@ use codec::{Encode, Decode};
 use sp_std::prelude::*;
 use sp_runtime::{traits::AccountIdConversion};
 pub use pallet::*;
+#[cfg(test)]
+mod tests;
 use scale_info::TypeInfo;
 
 
