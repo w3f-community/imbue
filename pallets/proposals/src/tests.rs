@@ -167,21 +167,25 @@ impl pallet_timestamp::Config for Test {
 }
 
 parameter_types! {
-    pub const 2WeekBlockUnit: u32 = 100800u32;
+    pub const TwoWeekBlockUnit: u32 = 100800u32;
+    pub const ProposalsPalletId: PalletId = PalletId(*b"imbgrant");
 }
 impl proposals::Config for Test {
     type Event = Event;
-    type PalletId = ();
+    type PalletId = ProposalsPalletId;
     type Currency = Balances;
     type WeightInfo = ();
     type MaxProposalsPerRound = ConstU32<4>;
     // Adding 2 weeks as th expiration time
-    type MaxWithdrawalExpiration: IsType<<Self as frame_system::Config>::BlockNumber> = now + 2WeekBlockUnit.into();
+    type MaxWithdrawalExpiration = TwoWeekBlockUnit;
 }
 
+
 parameter_types! {
-    pub const BasicDeposit: u64 = 10;
+	pub const BasicDeposit: u64 = 10;
 	pub const FieldDeposit: u64 = 10;
+	pub const SubAccountDeposit: u64 = 10;
+	pub const MaxSubAccounts: u32 = 2;
 	pub const MaxAdditionalFields: u32 = 2;
 	pub const MaxRegistrars: u32 = 20;
 }
@@ -198,8 +202,8 @@ impl pallet_identity::Config for Test {
 	type Slashed = ();
 	type BasicDeposit = BasicDeposit;
 	type FieldDeposit = FieldDeposit;
-	type SubAccountDeposit = ConstU32<10>;
-	type MaxSubAccounts = ConstU32<2>;
+	type SubAccountDeposit = SubAccountDeposit;
+	type MaxSubAccounts = MaxSubAccounts;
 	type MaxAdditionalFields = MaxAdditionalFields;
 	type MaxRegistrars = MaxRegistrars;
 	type RegistrarOrigin = EnsureOneOrRoot;
