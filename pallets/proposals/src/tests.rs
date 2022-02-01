@@ -17,35 +17,29 @@
 
 use crate as proposals;
 use crate::*;
-use codec::Decode;
 use frame_support::{
-    parameter_types, ord_parameter_types, PalletId,
-    traits::{EnsureOrigin,Everything,ConstU32,EnsureInherentsAreFirst},
-    weights::{IdentityFee, Weight},
+    assert_noop,
+    parameter_types, ord_parameter_types, PalletId,dispatch::DispatchErrorWithPostInfo,
+    traits::{ConstU32},
+    weights::{IdentityFee, PostDispatchInfo, Weight},
 };
 
-use frame_system::{pallet_prelude::BlockNumberFor,EnsureRoot,EnsureSignedBy,EnsureOneOf};
+use frame_system::{EnsureRoot};
 use sp_core::{
-    offchain::{testing, OffchainWorkerExt, TransactionPoolExt},
     sr25519::Signature,
     H256,
 };
-use sp_keystore::{testing::KeyStore, KeystoreExt, SyncCryptoStore};
 
 use sp_std::str;
 use sp_std::vec::Vec;
-use std::sync::Arc;
 
 use sp_runtime::{
     testing::{Header, TestXt},
-    traits::{BlakeTwo256, Extrinsic as ExtrinsicT, IdentifyAccount, IdentityLookup, Verify, BlockNumberProvider},
+    traits::{BlakeTwo256, Extrinsic as ExtrinsicT, IdentifyAccount, IdentityLookup, Verify},
 };
-
-use sp_core::{ sr25519, Pair, Public};
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
-type AccountPublic = <Signature as Verify>::Signer;
 
 frame_support::construct_runtime!(
     pub enum Test where
@@ -59,9 +53,6 @@ frame_support::construct_runtime!(
         Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
         TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
         Identity: pallet_identity::{Pallet, Call, Storage, Event<T>},
-       // XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin} = 51,
-        //CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Event<T>, Origin} = 52,
-
     }
 );
 
@@ -82,8 +73,6 @@ parameter_types! {
     pub BlockWeights: frame_system::limits::BlockWeights =
         frame_system::limits::BlockWeights::simple_max(1024);
 }
-//pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
-
 
 impl frame_system::Config for Test {
     type BaseCallFilter = frame_support::traits::Everything;
@@ -194,8 +183,6 @@ ord_parameter_types! {
 	pub const One: u64 = 1;
 	pub const Two: u64 = 2;
 }
-type EnsureOneOrRoot = EnsureOneOf<EnsureRoot<u64>, EnsureSignedBy<One, u64>,EnsureSignedBy<One, u64>>;
-type EnsureTwoOrRoot = EnsureOneOf<EnsureRoot<u64>, EnsureSignedBy<Two, u64>,EnsureSignedBy<Two, u64>>;
 
 impl pallet_identity::Config for Test {
     type Event = Event;
@@ -212,7 +199,6 @@ impl pallet_identity::Config for Test {
 	type WeightInfo = ();
 }
 
-// pub trait Config: CreateSignedTransaction<Self> + frame_system::Config {}
 impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Test
 where
     Call: From<LocalCall>,
@@ -227,114 +213,67 @@ where
     }
 }
 
-/*
-parameter_types! {
-    // pub const RelayLocationson::X1(Parent);
-    pub const RelayNetwork: NetworkId = NetworkId::Kusama;
-    // pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
-}
-*/
-
 parameter_types! {
     pub const UnitWeightCost: Weight = 10;
     pub const MaxInstructions: u32 = 100;
 }
 
-
-/*pub struct DummyWeightTrader;
-impl WeightTrader for DummyWeightTrader {
-    fn new() -> Self {
-        DummyWeightTrader
-    }
-
-    fn buy_weight(&mut self, _weight: Weight, _payment: Assets) -> Result<Assets, XcmError> {
-        Ok(Assets::default())
-    }
-}
-pub struct DummyAssetTransactor;
-impl TransactAsset for DummyAssetTransactor {
-    fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation) -> XcmResult {
-        Ok(())
-    }
-
-    fn withdraw_asset(_what: &MultiAsset, _who: &MultiLocation) -> Result<Assets, XcmError> {
-        let asset: MultiAsset = (Parent, 100_000).into();
-        Ok(asset.into())
-    }
-}
-*/
-
 #[test]
 fn create_a_test_project() {
-    const PHRASE: &str =
-        "news slush supreme milk chapter athlete soap sausage put clutch what kitten";
-    /*let (offchain, offchain_state) = testing::TestOffchainExt::new();
-    let (pool, pool_state) = testing::TestTransactionPoolExt::new();
-
-    let keystore = KeyStore::new();
-
-    SyncCryptoStore::sr25519_generate_new(
-        &keystore,
-        proposals::KEY_TYPE,
-        Some(&format!("{}/hunter1", PHRASE)),
-    )
-    .unwrap();
-*/
-
     let mut t = sp_io::TestExternalities::default();
-  /*
-    t.register_extension(OffchainWorkerExt::new(offchain));
-    t.register_extension(TransactionPoolExt::new(pool));
-    t.register_extension(KeystoreExt(Arc::new(keystore)));
-*/
-
-    //mock_submit_response(&mut offchain_state.write());
-    //let expected_response = br#"{"USD": 155.23}"#.to_vec();
     t.execute_with(|| {
         Proposals::create_project(
             Origin::signed(Default::default()),
             //project name
-            str::from_utf8(b"Project Hari Om").unwrap().as_bytes().to_vec(),
+            str::from_utf8(b"Imbue's Awesome Initiative").unwrap().as_bytes().to_vec(),
             //project logo
-            str::from_utf8(b"Logo Hariom").unwrap().as_bytes().to_vec(),
+            str::from_utf8(b"Imbue Logo").unwrap().as_bytes().to_vec(),
             //project description
-            str::from_utf8(b"This project is aimed at promoting Decentralised Data and Transparent CrowdFunding.").unwrap().as_bytes().to_vec(), 
+            str::from_utf8(b"This project is aimed at promoting Decentralised Data and Transparent Crowdfunding.").unwrap().as_bytes().to_vec(), 
             //website
-            str::from_utf8(b"1. MVP, 2. Community Tested, 3. Prod Rollout").unwrap().as_bytes().to_vec(),
+            str::from_utf8(b"https://imbue.network").unwrap().as_bytes().to_vec(),
             //milestone
             vec![ProposedMilestone { 
-                name: Vec::new(), percentage_to_unlock: 20
+                name: Vec::new(), percentage_to_unlock: 100
             }],
             //funds required
             1000000u64
         ).unwrap();
-           
-/*
-        let tx1 = pool_state.write().transactions.pop().unwrap();
-        let tx2 = pool_state.write().transactions.pop().unwrap();
+    });
+}
 
-        let tx1 = Extrinsic::decode(&mut &*tx1).unwrap();
-        let tx2 = Extrinsic::decode(&mut &*tx2).unwrap();
-*/
 
-        assert_eq!(1,1);
 
-        /*if let Call::Proposals(crate::Call::create_project {
-            block_number: _block_number,
-            key: _key,
-            data: response,
-        }) = tx2.call
-        {
-            assert_eq!(response, expected_response);
-        }
 
-        if let Call::KylinOracle(crate::Call::clear_processed_requests_unsigned {
-            block_number: _block_number,
-            processed_requests,
-        }) = tx1.call
-        {
-            assert_eq!(1, processed_requests.len());
-        }*/
+#[test]
+fn create_a_test_project_with_less_than_100_percent() {
+    let mut t = sp_io::TestExternalities::default();
+
+    t.execute_with(|| {
+        assert_noop!(
+        Proposals::create_project(
+            Origin::signed(Default::default()),
+            //project name
+            str::from_utf8(b"Imbue's Awesome Initiative").unwrap().as_bytes().to_vec(),
+            //project logo
+            str::from_utf8(b"Imbue Logo").unwrap().as_bytes().to_vec(),
+            //project description
+            str::from_utf8(b"This project is aimed at promoting Decentralised Data and Transparent Crowdfunding.").unwrap().as_bytes().to_vec(), 
+            //website
+            str::from_utf8(b"https://imbue.network").unwrap().as_bytes().to_vec(),
+            //milestone
+            vec![ProposedMilestone { 
+                name: Vec::new(), percentage_to_unlock: 99
+            }],
+            //funds required
+            1000000u64
+        ),DispatchErrorWithPostInfo {
+            post_info: PostDispatchInfo {
+                actual_weight: None,
+                pays_fee: Pays::Yes,
+            },
+            error: Error::<Test>::MilestonesTotalPercentageMustEqual100.into()
+        }) ;
     });
 }
 
